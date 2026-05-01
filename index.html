@@ -157,6 +157,7 @@
             padding: 25px;
             max-height: 90vh;
             overflow-y: auto;
+            position: relative;
         }
 
         .form-row {
@@ -225,6 +226,33 @@
             cursor: pointer;
             box-shadow: 0 8px 20px rgba(234, 29, 44, 0.3);
         }
+
+        /* Melhorias no CSS do carrinho */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-qtd {
+            background: var(--border);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--text);
+        }
     </style>
 </head>
 <body>
@@ -237,8 +265,7 @@
         </div>
     </header>
 
-    <main id="menu-container">
-        </main>
+    <main id="menu-container"></main>
 
     <div class="floating-bar" id="floating-bar" onclick="openCart()">
         <span><i class="fas fa-cart-shopping"></i> Ver Carrinho</span>
@@ -249,12 +276,14 @@
         <div class="modal-content">
             <h2 style="margin-bottom: 20px;">Seu Carrinho</h2>
             <div id="cart-items-list"></div>
+            
             <div style="display: flex; justify-content: space-between; margin-top: 20px; font-weight: 800; font-size: 18px;">
                 <span>Total</span>
                 <span id="modal-total">R$ 0,00</span>
             </div>
-            <button class="btn-send" style="background: var(--primary);" onclick="goToCheckout()">Continuar</button>
-            <button onclick="closeModal('cart-modal')" style="width:100%; background:none; border:none; margin-top:10px; color:#777; cursor:pointer;">Adicionar mais itens</button>
+            
+            <button class="btn-send" style="background: var(--primary);" onclick="goToCheckout()">Continuar para o Pagamento</button>
+            <button onclick="closeModal('cart-modal')" style="width:100%; background:none; border:none; margin-top:15px; color:#777; cursor:pointer; font-weight: 600;">Adicionar mais itens</button>
         </div>
     </div>
 
@@ -300,6 +329,7 @@
             <button class="btn-send" onclick="sendOrder()">
                 <i class="fab fa-whatsapp"></i> Enviar para o WhatsApp
             </button>
+            <button onclick="closeModal('checkout-modal'); openCart();" style="width:100%; background:none; border:none; margin-top:15px; color:#777; cursor:pointer; font-weight: 600;">Voltar ao Carrinho</button>
         </div>
     </div>
 
@@ -308,14 +338,20 @@
         let cart = [];
         let metodoEnvio = 'entrega';
 
-                const produtos = [
-            { id: 1, cat: 'Pastéis Tradicionais', nome: 'Pastel de Carne Tradicional, preco: 12.00, desc: 'Carne moída temperada, ovo, azeitona e salada opcional.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Pastel+de+Carne' },
-            { id: 3, cat: 'Pastéis Tradicionais', nome: 'Pastel de Frango com Catupiry', preco: 12.00, desc: 'Frango desfiado com o legítimo Catupiry.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Pastel+de+Frango+Especial' },
-            { id: 4, cat: 'Lanches', nome: 'X-Burguer Duplo', preco: 25.00, desc: 'Dois blends bovinos, queijo prato e maionese.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=X-Burguer+Duplo' },
-            { id: 5, cat: 'Salgados', nome: 'Coxinha de Frango', preco: 8.00, desc: 'Massa de batata crocante e recheio suculento.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Coxinha' },
-            { id: 6, cat: 'Refrigerantes', nome: 'Coca-Cola 350ml', preco: 6.00, desc: 'Geladíssima.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Coca-Cola' },
+        // 1. CORREÇÃO: Erro de sintaxe (aspas) no Pastel de Carne, e correção do ID duplicado na sobremesa.
+        const produtos = [
+            { id: 1, cat: 'Pastéis Tradicionais', nome: 'Pastel de Carne Tradicional', preco: 12.00, desc: 'Carne moída temperada, ovo, azeitona e salada opcional.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Pastel+de+Carne' },
+            { id: 2, cat: 'Pastéis Tradicionais', nome: 'Pastel de Frango com Catupiry', preco: 12.00, desc: 'Frango desfiado com o legítimo Catupiry.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Pastel+de+Frango+Especial' },
+            { id: 3, cat: 'Lanches', nome: 'X-Burguer Duplo', preco: 25.00, desc: 'Dois blends bovinos, queijo prato e maionese.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=X-Burguer+Duplo' },
+            { id: 4, cat: 'Salgados', nome: 'Coxinha de Frango', preco: 8.00, desc: 'Massa de batata crocante e recheio suculento.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Coxinha' },
+            { id: 5, cat: 'Refrigerantes', nome: 'Coca-Cola 350ml', preco: 6.00, desc: 'Geladíssima.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Coca-Cola' },
             { id: 6, cat: 'Sobremesas', nome: 'Pudim de Leite Moça', preco: 10.00, desc: 'Fatia individual com calda de caramelo.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Pudim' }
         ];
+
+        // Função auxiliar para formatar em Reais (R$)
+        const formatarMoeda = (valor) => {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        };
 
         function renderMenu() {
             const container = document.getElementById('menu-container');
@@ -326,14 +362,14 @@
                 <div class="grid">
                     ${produtos.filter(p => p.cat === cat).map(p => `
                         <div class="card" onclick="addToCart(${p.id})">
-                            <img src="${p.img}" class="card-img">
+                            <img src="${p.img}" class="card-img" alt="${p.nome}">
                             <div class="card-body">
                                 <div>
                                     <h3>${p.nome}</h3>
                                     <p>${p.desc}</p>
                                 </div>
                                 <div class="card-footer">
-                                    <span class="price">R$ ${p.preco.toFixed(2)}</span>
+                                    <span class="price">${formatarMoeda(p.preco)}</span>
                                     <button class="add-btn">Adicionar</button>
                                 </div>
                             </div>
@@ -346,8 +382,24 @@
         function addToCart(id) {
             const prod = produtos.find(p => p.id === id);
             const item = cart.find(c => c.id === id);
-            if(item) item.qtd++; else cart.push({...prod, qtd: 1});
+            if(item) {
+                item.qtd++; 
+            } else {
+                cart.push({...prod, qtd: 1});
+            }
             updateUI();
+        }
+
+        // Nova função para alterar quantidade dentro do carrinho
+        function alterarQtd(id, delta) {
+            const item = cart.find(c => c.id === id);
+            if (item) {
+                item.qtd += delta;
+                if (item.qtd <= 0) {
+                    cart = cart.filter(c => c.id !== id); // Remove se zerar
+                }
+                updateUI();
+            }
         }
 
         function updateUI() {
@@ -356,15 +408,28 @@
             
             document.getElementById('cart-count').innerText = count;
             document.getElementById('floating-bar').style.display = count > 0 ? 'flex' : 'none';
-            document.getElementById('float-total').innerText = `R$ ${total.toFixed(2)}`;
-            document.getElementById('modal-total').innerText = `R$ ${total.toFixed(2)}`;
+            document.getElementById('float-total').innerText = formatarMoeda(total);
+            document.getElementById('modal-total').innerText = formatarMoeda(total);
 
-            document.getElementById('cart-items-list').innerHTML = cart.map(i => `
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">
-                    <span>${i.qtd}x ${i.nome}</span>
-                    <span>R$ ${(i.preco * i.qtd).toFixed(2)}</span>
-                </div>
-            `).join('');
+            const cartList = document.getElementById('cart-items-list');
+            
+            if (cart.length === 0) {
+                cartList.innerHTML = '<p style="text-align: center; color: #777; margin: 20px 0;">Seu carrinho está vazio.</p>';
+            } else {
+                cartList.innerHTML = cart.map(i => `
+                    <div class="cart-item">
+                        <div>
+                            <strong>${i.nome}</strong><br>
+                            <span style="font-size: 13px; color: #777;">${formatarMoeda(i.preco * i.qtd)}</span>
+                        </div>
+                        <div class="cart-item-controls">
+                            <button class="btn-qtd" onclick="alterarQtd(${i.id}, -1)">-</button>
+                            <span>${i.qtd}</span>
+                            <button class="btn-qtd" onclick="alterarQtd(${i.id}, 1)">+</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
         }
 
         function setMetodo(m) {
@@ -379,12 +444,19 @@
             document.getElementById('div-troco').classList.toggle('hidden', !isDinheiro);
         }
 
-        function openCart() { document.getElementById('cart-modal').style.display = 'flex'; }
+        function openCart() { 
+            document.getElementById('cart-modal').style.display = 'flex'; 
+        }
+        
         function goToCheckout() { 
+            if(cart.length === 0) return alert("Adicione itens ao carrinho primeiro!");
             closeModal('cart-modal'); 
             document.getElementById('checkout-modal').style.display = 'flex'; 
         }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        function closeModal(id) { 
+            document.getElementById(id).style.display = 'none'; 
+        }
 
         function sendOrder() {
             const nome = document.getElementById('nome').value;
@@ -393,8 +465,8 @@
             const troco = document.getElementById('troco').value;
             const total = cart.reduce((t, i) => t + (i.preco * i.qtd), 0);
 
-            if(!nome) return alert("Informe seu nome");
-            if(metodoEnvio === 'entrega' && !endereco) return alert("Informe o endereço");
+            if(!nome) return alert("Por favor, informe seu nome.");
+            if(metodoEnvio === 'entrega' && !endereco) return alert("Por favor, informe o endereço de entrega.");
 
             let msg = `*NOVO PEDIDO*\n--------------------------\n`;
             msg += `*Cliente:* ${nome}\n`;
@@ -403,18 +475,19 @@
             msg += `--------------------------\n*ITENS:*\n`;
             
             cart.forEach(i => {
-                msg += `• ${i.qtd}x ${i.nome} (R$ ${(i.preco * i.qtd).toFixed(2)})\n`;
+                msg += `• ${i.qtd}x ${i.nome} (${formatarMoeda(i.preco * i.qtd)})\n`;
             });
 
             msg += `--------------------------\n`;
             msg += `*Pagamento:* ${pag}\n`;
             if(pag === 'Dinheiro' && troco) msg += `*Troco para:* R$ ${troco}\n`;
-            msg += `*TOTAL:* R$ ${total.toFixed(2)}`;
+            msg += `*TOTAL:* ${formatarMoeda(total)}`;
 
             const url = `https://api.whatsapp.com/send?phone=${WHATSAPP}&text=${encodeURIComponent(msg)}`;
             window.open(url, '_blank');
         }
 
+        // Inicia a renderização
         renderMenu();
     </script>
 </body>
