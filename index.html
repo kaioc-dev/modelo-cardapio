@@ -88,9 +88,9 @@
         .check-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px; border: 1px solid #eee; border-radius: 10px; margin-bottom: 8px;
-            cursor: pointer;
+            cursor: pointer; transition: 0.2s;
         }
-        .check-item.active { border-color: var(--primary); background: #fff0f1; }
+        .check-item.active { border-color: var(--primary); background: #fff0f1; color: var(--primary); font-weight: bold; }
 
         .btn-confirm {
             width: 100%; padding: 15px; background: var(--primary); color: #fff;
@@ -107,6 +107,12 @@
 
         .cart-item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
         .item-details { font-size: 13px; color: #666; }
+
+        input, select {
+            width: 100%; padding: 12px; border: 1px solid #ddd;
+            border-radius: 8px; outline: none; margin-bottom: 15px;
+            font-family: inherit; font-size: 15px;
+        }
     </style>
 </head>
 <body>
@@ -130,7 +136,7 @@
         <div class="modal-content">
             <h2 id="opt-title" class="brand-font" style="color: var(--primary); margin-bottom: 15px;">Personalizar</h2>
             <div id="options-container"></div>
-            <button class="btn-confirm brand-font" style="margin-top: 15px;" onclick="confirmAddition()">Adicionar ao Carrinho</button>
+            <button class="btn-confirm brand-font" style="margin-top: 15px;" onclick="confirmAddition()">Adicionar à Sacola</button>
             <button onclick="closeModal('options-modal')" style="width:100%; background:none; border:none; margin-top:15px; color:#777; cursor:pointer;">Cancelar</button>
         </div>
     </div>
@@ -140,40 +146,89 @@
             <h2 class="brand-font" style="margin-bottom: 20px;">Minha Sacola</h2>
             <div id="cart-items-list"></div>
             <div style="display: flex; justify-content: space-between; margin-top: 20px; font-weight: 800; font-size: 20px;">
-                <span>Total</span>
+                <span>Total dos Lanches</span>
                 <span id="modal-total">R$ 0,00</span>
             </div>
-            <button class="btn-confirm brand-font" style="background: #25D366; margin-top: 20px;" onclick="finishOrder()">Finalizar via WhatsApp</button>
-            <button onclick="closeModal('cart-modal')" style="width:100%; background:none; border:none; margin-top:10px; color:#777; cursor:pointer;">Escolher mais lanches</button>
+            <button class="btn-confirm brand-font" style="margin-top: 20px;" onclick="goToCheckout()">Continuar</button>
+            <button onclick="closeModal('cart-modal')" style="width:100%; background:none; border:none; margin-top:15px; color:#777; cursor:pointer; font-weight: bold;">Escolher mais lanches</button>
+        </div>
+    </div>
+
+    <div class="modal" id="checkout-modal">
+        <div class="modal-content">
+            <h2 class="brand-font" style="margin-bottom: 15px; color: var(--primary);">Finalizar Pedido</h2>
+
+            <div class="option-group">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block;">Como deseja receber?</label>
+                <div style="display: flex; gap: 10px;">
+                    <div class="check-item active" style="flex: 1; text-align: center; justify-content: center;" id="opt-entrega" onclick="setMetodo('entrega')">Entrega (+R$ 5,00)</div>
+                    <div class="check-item" style="flex: 1; text-align: center; justify-content: center;" id="opt-retirada" onclick="setMetodo('retirada')">Retirar no local</div>
+                </div>
+            </div>
+
+            <input type="text" id="nome" placeholder="Seu Nome Completo">
+
+            <div id="div-endereco">
+                <input type="text" id="endereco" placeholder="Endereço (Rua, Nº, Bairro, Ref.)">
+            </div>
+
+            <select id="pagamento" onchange="toggleTroco()">
+                <option value="Pix">Pix</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                <option value="Cartão de Débito">Cartão de Débito</option>
+                <option value="Dinheiro">Dinheiro</option>
+            </select>
+
+            <div id="div-troco" style="display: none;">
+                <input type="number" id="troco" placeholder="Vai precisar de troco para quanto?">
+            </div>
+
+            <div style="background: #f1f1f1; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: #555;">
+                    <span>Subtotal:</span> <span id="chk-sub">R$ 0,00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #555;">
+                    <span>Taxa de Entrega:</span> <span id="chk-taxa">R$ 5,00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; color: var(--primary); border-top: 1px solid #ccc; padding-top: 10px;">
+                    <span>Total a Pagar:</span> <span id="chk-total">R$ 0,00</span>
+                </div>
+            </div>
+
+            <button class="btn-confirm brand-font" style="background: #25D366;" onclick="sendOrder()"><i class="fab fa-whatsapp"></i> Enviar Pedido</button>
+            <button onclick="voltarCarrinho()" style="width:100%; background:none; border:none; margin-top:15px; color:#777; cursor:pointer; font-weight: bold;">Voltar à Sacola</button>
         </div>
     </div>
 
     <script>
-        const WHATSAPP = "5581995437788";
+        const WHATSAPP = "5581995437788"; // Coloque seu número aqui
         let cart = [];
         let currentItem = null;
         let selectedOptions = { flavor: '', extras: [] };
+        
+        let metodoEnvio = 'entrega';
+        const TAXA_ENTREGA = 5.00;
 
         const produtos = [
-            { id: 1, cat: 'Pizzas', nome: 'Pizza Grande (G)', preco: 42.00, type: 'pizza', img: 'https://placehold.co/400?text=Pizza+G' },
-            { id: 2, cat: 'Pizzas', nome: 'Pizza Média (M)', preco: 30.00, type: 'pizza', img: 'https://placehold.co/400?text=Pizza+M' },
-            { id: 3, cat: 'Pizzas', nome: 'Pizza Pequena (P)', preco: 20.00, type: 'pizza', img: 'https://placehold.co/400?text=Pizza+P' },
+            { id: 1, cat: 'Pizzas', nome: 'Pizza Grande (G)', preco: 42.00, type: 'pizza', img: 'https://placehold.co/400/e4002b/ffffff?text=Pizza+G' },
+            { id: 2, cat: 'Pizzas', nome: 'Pizza Média (M)', preco: 30.00, type: 'pizza', img: 'https://placehold.co/400/e4002b/ffffff?text=Pizza+M' },
+            { id: 3, cat: 'Pizzas', nome: 'Pizza Pequena (P)', preco: 20.00, type: 'pizza', img: 'https://placehold.co/400/e4002b/ffffff?text=Pizza+P' },
             
-            { id: 4, cat: 'Pastéis', nome: 'Pastel Especial', preco: 12.00, type: 'pastel', img: 'https://placehold.co/400?text=Pastel' },
+            { id: 4, cat: 'Pastéis', nome: 'Pastel Especial', preco: 12.00, type: 'pastel', img: 'https://placehold.co/400/e4002b/ffffff?text=Pastel' },
             
-            { id: 5, cat: 'Hambúrgueres', nome: 'Hambúrguer Simples', preco: 15.00, type: 'burger', img: 'https://placehold.co/400?text=Simples' },
-            { id: 6, cat: 'Hambúrgueres', nome: 'Hambúrguer Duplo', preco: 20.00, type: 'burger', img: 'https://placehold.co/400?text=Duplo' },
-            { id: 7, cat: 'Hambúrgueres', nome: 'X-Bacon', preco: 25.00, type: 'burger', img: 'https://placehold.co/400?text=X-Bacon' },
-            { id: 8, cat: 'Hambúrgueres', nome: 'X-Salada', preco: 18.00, type: 'burger', img: 'https://placehold.co/400?text=X-Salada' },
-            { id: 9, cat: 'Hambúrgueres', nome: 'X-Tudo', preco: 30.00, type: 'burger', img: 'https://placehold.co/400?text=X-Tudo' },
+            { id: 5, cat: 'Hambúrgueres', nome: 'Hambúrguer Simples', preco: 15.00, type: 'burger', img: 'https://placehold.co/400/e4002b/ffffff?text=Simples' },
+            { id: 6, cat: 'Hambúrgueres', nome: 'Hambúrguer Duplo', preco: 20.00, type: 'burger', img: 'https://placehold.co/400/e4002b/ffffff?text=Duplo' },
+            { id: 7, cat: 'Hambúrgueres', nome: 'X-Bacon', preco: 25.00, type: 'burger', img: 'https://placehold.co/400/e4002b/ffffff?text=X-Bacon' },
+            { id: 8, cat: 'Hambúrgueres', nome: 'X-Salada', preco: 18.00, type: 'burger', img: 'https://placehold.co/400/e4002b/ffffff?text=X-Salada' },
+            { id: 9, cat: 'Hambúrgueres', nome: 'X-Tudo', preco: 30.00, type: 'burger', img: 'https://placehold.co/400/e4002b/ffffff?text=X-Tudo' },
 
-            { id: 10, cat: 'Bebidas', nome: 'Coca-Cola 350ml', preco: 6.00, type: 'drink', img: 'https://placehold.co/400?text=Coca' },
-            { id: 11, cat: 'Bebidas', nome: 'Coca Zero 350ml', preco: 6.00, type: 'drink', img: 'https://placehold.co/400?text=Coca+Zero' },
-            { id: 12, cat: 'Bebidas', nome: 'Fanta Laranja 350ml', preco: 6.00, type: 'drink', img: 'https://placehold.co/400?text=Fanta' }
+            { id: 10, cat: 'Bebidas', nome: 'Coca-Cola 350ml', preco: 6.00, type: 'drink', img: 'https://placehold.co/400/e4002b/ffffff?text=Coca' },
+            { id: 11, cat: 'Bebidas', nome: 'Coca Zero 350ml', preco: 6.00, type: 'drink', img: 'https://placehold.co/400/e4002b/ffffff?text=Coca+Zero' },
+            { id: 12, cat: 'Bebidas', nome: 'Fanta Laranja 350ml', preco: 6.00, type: 'drink', img: 'https://placehold.co/400/e4002b/ffffff?text=Fanta' }
         ];
 
         const SABORES_PIZZA = ['Calabresa', 'Mussarela', 'Frango com Catupiry', 'Portuguesa'];
-        const SABORES_PASTEL = ['Frango', 'Carne', 'Frango c/ Catupiry', 'Carne c/ Catupiry', 'Pizza', '3 Queijos'];
+        const SABORES_PASTEL = ['Frango', 'Carne', 'Frango c/ Catupiry', 'Carne c/ Catupiry', 'Sabor Pizza', '3 Queijos'];
         const EXTRAS_PASTEL = ['Azeitona', 'Milho', 'Cebola', 'Tomate', 'Uva Passa', 'Repolho'];
         const EXTRAS_BURGER = [
             {n: 'Carne extra', p: 5}, {n: 'Queijo extra', p: 3}, 
@@ -236,7 +291,7 @@
                 html += `<div class="option-group"><h4>Adicionais Pagos:</h4>`;
                 EXTRAS_BURGER.forEach(e => {
                     html += `<div class="check-item" onclick="toggleExtra(this, '${e.n}', ${e.p})">
-                        ${e.n} (+R$ ${e.p}) <i class="fas fa-plus"></i>
+                        ${e.n} (+R$ ${e.p.toFixed(2)}) <i class="fas fa-plus"></i>
                     </div>`;
                 });
                 html += `</div>`;
@@ -246,8 +301,10 @@
             document.getElementById('options-modal').style.display = 'flex';
         }
 
+        // CORREÇÃO APLICADA AQUI: Busca apenas os itens selecionáveis e ignora os títulos (<h4>)
         function setFlavor(el, flavor) {
-            Array.from(el.parentElement.children).forEach(c => {
+            const todosItens = el.parentElement.querySelectorAll('.check-item');
+            todosItens.forEach(c => {
                 c.classList.remove('active');
                 c.querySelector('i').className = 'far fa-circle';
             });
@@ -261,9 +318,11 @@
             if(index > -1) {
                 selectedOptions.extras.splice(index, 1);
                 el.classList.remove('active');
+                el.querySelector('i').className = 'fas fa-plus';
             } else {
                 selectedOptions.extras.push({name, price});
                 el.classList.add('active');
+                el.querySelector('i').className = 'fas fa-check';
             }
         }
 
@@ -280,10 +339,9 @@
             const extraTotal = selectedOptions.extras.reduce((t, x) => t + x.price, 0);
             const itemFinal = {
                 ...currentItem,
-                customName: `${currentItem.nome} ${selectedOptions.flavor ? '('+selectedOptions.flavor+')' : ''}`,
+                customName: `${currentItem.nome} ${selectedOptions.flavor ? ' - '+selectedOptions.flavor : ''}`,
                 details: selectedOptions.extras.map(x => x.name).join(', '),
-                precoFinal: currentItem.preco + extraTotal,
-                qtd: 1
+                precoFinal: currentItem.preco + extraTotal
             };
             cart.push(itemFinal);
             updateUI();
@@ -291,46 +349,113 @@
 
         function updateUI() {
             const count = cart.length;
-            const total = cart.reduce((t, i) => t + i.precoFinal, 0);
+            const subtotal = cart.reduce((t, i) => t + i.precoFinal, 0);
+            
             document.getElementById('cart-count').innerText = count;
             document.getElementById('floating-bar').style.display = count > 0 ? 'flex' : 'none';
-            document.getElementById('float-total').innerText = `R$ ${total.toFixed(2)}`;
+            document.getElementById('float-total').innerText = `R$ ${subtotal.toFixed(2)}`;
             
             document.getElementById('cart-items-list').innerHTML = cart.map((i, idx) => `
                 <div class="cart-item-row">
                     <div>
                         <strong>${i.customName}</strong><br>
-                        <span class="item-details">${i.details || 'Sem adicionais'}</span>
+                        <span class="item-details">${i.details || 'Tradicional (sem adicionais)'}</span>
                     </div>
                     <div style="text-align: right">
                         R$ ${i.precoFinal.toFixed(2)}<br>
-                        <i class="fas fa-trash" onclick="removeItem(${idx})" style="color:red; cursor:pointer; font-size:12px"></i>
+                        <i class="fas fa-trash" onclick="removeItem(${idx})" style="color:red; cursor:pointer; margin-top: 5px;"> Remover</i>
                     </div>
                 </div>
             `).join('');
-            document.getElementById('modal-total').innerText = `R$ ${total.toFixed(2)}`;
+            
+            document.getElementById('modal-total').innerText = `R$ ${subtotal.toFixed(2)}`;
+            atualizarValoresCheckout();
         }
 
         function removeItem(idx) {
             cart.splice(idx, 1);
             updateUI();
+            if(cart.length === 0) closeModal('cart-modal');
         }
 
-        function openCart() { document.getElementById('cart-modal').style.display = 'flex'; }
+        function openCart() { 
+            if(cart.length === 0) return alert("Sua sacola está vazia!");
+            document.getElementById('cart-modal').style.display = 'flex'; 
+        }
+        
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        function finishOrder() {
+        // SISTEMA DE FINALIZAÇÃO DE COMPRA COM TAXA
+        function goToCheckout() {
+            closeModal('cart-modal');
+            document.getElementById('checkout-modal').style.display = 'flex';
+            atualizarValoresCheckout();
+        }
+
+        function voltarCarrinho() {
+            closeModal('checkout-modal');
+            openCart();
+        }
+
+        function setMetodo(m) {
+            metodoEnvio = m;
+            document.getElementById('opt-entrega').classList.toggle('active', m === 'entrega');
+            document.getElementById('opt-retirada').classList.toggle('active', m === 'retirada');
+            document.getElementById('div-endereco').style.display = m === 'retirada' ? 'none' : 'block';
+            atualizarValoresCheckout();
+        }
+
+        function atualizarValoresCheckout() {
+            const subtotal = cart.reduce((t, i) => t + i.precoFinal, 0);
+            const taxa = metodoEnvio === 'entrega' ? TAXA_ENTREGA : 0;
+            const totalFinal = subtotal + taxa;
+
+            document.getElementById('chk-sub').innerText = `R$ ${subtotal.toFixed(2)}`;
+            document.getElementById('chk-taxa').innerText = metodoEnvio === 'entrega' ? `R$ ${TAXA_ENTREGA.toFixed(2)}` : 'Grátis';
+            document.getElementById('chk-total').innerText = `R$ ${totalFinal.toFixed(2)}`;
+        }
+
+        function toggleTroco() {
+            const isDinheiro = document.getElementById('pagamento').value === 'Dinheiro';
+            document.getElementById('div-troco').style.display = isDinheiro ? 'block' : 'none';
+        }
+
+        function sendOrder() {
             if(cart.length === 0) return;
-            const total = cart.reduce((t, i) => t + i.precoFinal, 0);
-            let msg = `*NOVO PEDIDO - POBRE'S LANCHE*\n------------------------------\n`;
+            
+            const nome = document.getElementById('nome').value;
+            const endereco = document.getElementById('endereco').value;
+            const pag = document.getElementById('pagamento').value;
+            const troco = document.getElementById('troco').value;
+            
+            const subtotal = cart.reduce((t, i) => t + i.precoFinal, 0);
+            const taxa = metodoEnvio === 'entrega' ? TAXA_ENTREGA : 0;
+            const total = subtotal + taxa;
+
+            if(!nome) return alert("Por favor, preencha o seu nome.");
+            if(metodoEnvio === 'entrega' && !endereco) return alert("Por favor, preencha seu endereço para a entrega.");
+
+            let msg = `*NOVO PEDIDO - POBRE'S LANCHE*\n`;
+            msg += `------------------------------\n`;
+            msg += `*Cliente:* ${nome}\n`;
+            msg += `*Tipo:* ${metodoEnvio === 'entrega' ? 'Entregar em casa 🛵' : 'Retirar no local 🏪'}\n`;
+            if(metodoEnvio === 'entrega') msg += `*Endereço:* ${endereco}\n`;
+            msg += `------------------------------\n*ITENS:*\n\n`;
             
             cart.forEach(i => {
                 msg += `• *${i.customName}*\n`;
-                if(i.details) msg += `  _Extras: ${i.details}_\n`;
+                if(i.details) msg += `  _Adicionais: ${i.details}_\n`;
                 msg += `  Preço: R$ ${i.precoFinal.toFixed(2)}\n\n`;
             });
 
-            msg += `------------------------------\n*TOTAL: R$ ${total.toFixed(2)}*`;
+            msg += `------------------------------\n`;
+            msg += `Subtotal: R$ ${subtotal.toFixed(2)}\n`;
+            if(metodoEnvio === 'entrega') msg += `Taxa de Entrega: R$ ${TAXA_ENTREGA.toFixed(2)}\n`;
+            msg += `*TOTAL A PAGAR: R$ ${total.toFixed(2)}*\n\n`;
+            
+            msg += `*Forma de Pagamento:* ${pag}\n`;
+            if(pag === 'Dinheiro' && troco) msg += `*Troco para:* R$ ${troco}\n`;
+
             window.open(`https://api.whatsapp.com/send?phone=${WHATSAPP}&text=${encodeURIComponent(msg)}`);
         }
 
