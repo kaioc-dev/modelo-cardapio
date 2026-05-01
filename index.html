@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lanchonete</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ea1d2c; /* Vermelho estilo iFood */
+            --primary-hover: #c91624;
+            --bg-color: #ffffff;
+            --text-color: #3e3e3e;
+            --light-gray: #f7f7f7;
+            --border-color: #f2f2f2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-bottom: 80px; /* Espaço para o botão do carrinho mobile */
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: var(--bg-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 24px;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--text-color);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h2.category-title {
+            margin: 20px 0 15px;
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .product-card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .product-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .product-info p {
+            font-size: 13px;
+            color: #717171;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .price {
+            font-weight: 600;
+            color: #4CAF50;
+            font-size: 16px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Modal Base */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-end; /* Mobile friendly */
+        }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #717171;
+        }
+
+        /* Cart Styles */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .btn-large {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            justify-content: center;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* Fixed Mobile Cart Button */
+        .floating-cart {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(234, 29, 44, 0.4);
+            display: none; /* Só mostra se tiver item */
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 90;
+            width: 90%;
+            max-width: 400px;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Lanchonete</h1>
+        <div class="cart-icon" onclick="openCart()">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-badge" id="header-badge">0</span>
+        </div>
+    </header>
+
+    <main>
+        <h2 class="category-title">Pizzas Média (8 fatias)</h2>
+        <div class="product-list">
+            <div class="product-card">
+                <div class="product-info">
+                    <h3>Pizza Calabresa</h3>
+                    <p>Mussarela, calabresa fatiada, cebola e orégano. Massa artesanal assada na hora.</p>
+                </div>
+                <div class="product-price-row">
+                    <span class="price">R$ 45,00</span>
+                    <button class="btn" onclick="addToCart('Pizza Calabresa', 45.00)"><i class="fas fa-plus"></i> Add</button>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-info">
+                    <h3>Pizza Marguerita</h3>
+                    <p>Mussarela, tomate em rodelas, manjericão fresco e orégano.</p>
+                </div>
+                <div class="product-price-row">
+                    <span class="price">R$ 42,00</span>
+                    <button class="btn" onclick="addToCart('Pizza Marguerita', 42.00)"><i class="fas fa-plus"></i> Add</button>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="category-title">Lanches Artesanais</h2>
+        <div class="product-list">
+            <div class="product-card">
+                <div class="product-info">
+                    <h3>Smash Duplo</h3>
+                    <p>2 Burgers de 90g, duplo cheddar, maionese da casa no pão brioche.</p>
+                </div>
+                <div class="product-price-row">
+                    <span class="price">R$ 28,00</span>
+                    <button class="btn" onclick="addToCart('Smash Duplo', 28.00)"><i class="fas fa-plus"></i> Add</button>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-info">
+                    <h3>X-Tudo Especial</h3>
+                    <p>Burger 160g, bacon, ovo, presunto, queijo, alface, tomate e batata palha.</p>
+                </div>
+                <div class="product-price-row">
+                    <span class="price">R$ 32,00</span>
+                    <button class="btn" onclick="addToCart('X-Tudo Especial', 32.00)"><i class="fas fa-plus"></i> Add</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="floating-cart" id="floating-cart" onclick="openCart()">
+        <span><i class="fas fa-shopping-bag"></i> Ver sacola</span>
+        <span id="floating-total">R$ 0,00</span>
+    </div>
+
+    <div class="modal-overlay" id="cart-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sua Sacola</h2>
+                <button class="close-btn" onclick="closeModal('cart-modal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="cart-items">
+                </div>
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cart-total-price">R$ 0,00</span>
+            </div>
+            <button class="btn btn-large" onclick="proceedToCheckout()">Continuar <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="checkout-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dados de Entrega</h2>
+                <button class="close-btn" onclick="closeModal('checkout-modal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="checkout-form" onsubmit="sendToWhatsApp(event)">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="cliente-nome" required placeholder="Ex: João Silva">
+                </div>
+                <div class="form-group">
+                    <label>Telefone (WhatsApp)</label>
+                    <input type="tel" id="cliente-telefone" required placeholder="(00) 00000-0000">
+                </div>
+                <div class="form-group">
+                    <label>Endereço Completo</label>
+                    <input type="text" id="cliente-endereco" required placeholder="Rua, Número, Bairro">
+                </div>
+                <div class="form-group">
+                    <label>Complemento / Ponto de Referência</label>
+                    <textarea id="cliente-ref" rows="2" placeholder="Ex: Apto 102 / Perto da padaria..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-large" style="background-color: #25D366;">
+                    <i class="fab fa-whatsapp" style="font-size: 20px;"></i> Enviar Pedido
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        const WHATSAPP_NUMBER = "5581995437788"; // Número configurado com DDI do Brasil (+55)
+
+        function formatCurrency(value) {
+            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function addToCart(name, price) {
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ name, price, quantity: 1 });
+            }
+            updateCartUI();
+        }
+
+        function removeFromCart(name) {
+            const index = cart.findIndex(item => item.name === name);
+            if (index !== -1) {
+                if (cart[index].quantity > 1) {
+                    cart[index].quantity -= 1;
+                } else {
+                    cart.splice(index, 1);
+                }
+            }
+            updateCartUI();
+            
+            if (cart.length === 0) {
+                closeModal('cart-modal');
+            }
+        }
+
+        function updateCartUI() {
+            const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+            const totalPrice = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+            // Atualiza Badges
+            document.getElementById('header-badge').innerText = totalItems;
+            
+            // Atualiza Botão Flutuante
+            const floatCart = document.getElementById('floating-cart');
+            if (totalItems > 0) {
+                floatCart.style.display = 'flex';
+                document.getElementById('floating-total').innerText = formatCurrency(totalPrice);
+            } else {
+                floatCart.style.display = 'none';
+            }
+
+            // Atualiza Lista do Carrinho
+            const cartList = document.getElementById('cart-items');
+            cartList.innerHTML = '';
+            
+            cart.forEach(item => {
+                cartList.innerHTML += `
+                    <div class="cart-item">
+                        <div>
+                            <strong>${item.quantity}x</strong> ${item.name}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span>${formatCurrency(item.price * item.quantity)}</span>
+                            <button onclick="removeFromCart('${item.name}')" style="background: none; border: none; color: var(--primary-color); cursor: pointer;"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('cart-total-price').innerText = formatCurrency(totalPrice);
+        }
+
+        function openCart() {
+            if (cart.length === 0) {
+                alert("Sua sacola está vazia!");
+                return;
+            }
+            document.getElementById('cart-modal').style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function proceedToCheckout() {
+            closeModal('cart-modal');
+            document.getElementById('checkout-modal').style.display = 'flex';
+        }
+
+        function sendToWhatsApp(event) {
+            event.preventDefault(); // Evita recarregar a página
+
+            const nome = document.getElementById('cliente-nome').value;
+            const telefone = document.getElementById('cliente-telefone').value;
+            const endereco = document.getElementById('cliente-endereco').value;
+            const ref = document.getElementById('cliente-ref').value;
+
+            const totalPrice = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+            let message = `*NOVO PEDIDO - Lanchonete*\n\n`;
+            message += `*CLIENTE*\n`;
+            message += `Nome: ${nome}\n`;
+            message += `Telefone: ${telefone}\n`;
+            message += `Endereço: ${endereco}\n`;
+            if (ref) message += `Complemento: ${ref}\n`;
+            
+            message += `\n*RESUMO DO PEDIDO*\n`;
+            cart.forEach(item => {
+                message += `${item.quantity}x ${item.name} - ${formatCurrency(item.price * item.quantity)}\n`;
+            });
+            
+            message += `\n*TOTAL: ${formatCurrency(totalPrice)}*`;
+
+            // Codifica o texto para formato de URL
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappURL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
+
+            // Redireciona
+            window.open(whatsappURL, '_blank');
+        }
+    </script>
+</body>
+</html>
