@@ -29,7 +29,6 @@
             padding-bottom: 100px;
         }
 
-        /* Animação Glitch suave no Título - Inspirado no seu estilo */
         .glitch-title {
             font-size: 24px;
             font-weight: 800;
@@ -81,7 +80,6 @@
             padding-left: 10px;
         }
 
-        /* Grid de Produtos */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -141,7 +139,6 @@
             cursor: pointer;
         }
 
-        /* Modais */
         .modal {
             display: none;
             position: fixed;
@@ -312,11 +309,12 @@
         let metodoEnvio = 'entrega';
 
                 const produtos = [
-            { id: 1, cat: 'Pastéis Tradicionais', nome: 'Pastel de Carne Especial', preco: 12.00, desc: 'Carne moída temperada, ovo e azeitona.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Pastel+de+Carne' },
-            { id: 2, cat: 'Pastéis Tradicionais', nome: 'Pastel de Frango com Catupiry', preco: 12.00, desc: 'Frango desfiado com o legítimo Catupiry.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Pastel+de+Frango' },
-            { id: 3, cat: 'Lanches', nome: 'X-Burguer Duplo', preco: 25.00, desc: 'Dois blends bovinos, queijo prato e maionese.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=X-Burguer+Duplo' },
-            { id: 4, cat: 'Salgados', nome: 'Coxinha de Frango', preco: 8.00, desc: 'Massa de batata crocante e recheio suculento.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Coxinha' },
-            { id: 5, cat: 'Refrigerantes', nome: 'Coca-Cola 350ml', preco: 6.00, desc: 'Geladíssima.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Coca-Cola' },
+            { id: 1, cat: 'Pastéis Tradicionais', nome: 'Pastel de Carne Tradicional, preco: 12.00, desc: 'Carne moída temperada, ovo, azeitona e salada opcional.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Pastel+de+Carne' },
+            { id: 2, cat: 'Pastéis Tradicionais', nome: 'Pastel de Frango Tradicional, preco: 12.00, desc: 'Frango desfiado, ovo, azeitona, e salada opcional.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Pastel+de+Frango+Tradicional' },
+            { id: 3, cat: 'Pastéis Tradicionais', nome: 'Pastel de Frango com Catupiry', preco: 12.00, desc: 'Frango desfiado com o legítimo Catupiry.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Pastel+de+Frango+Especial' },
+            { id: 4, cat: 'Lanches', nome: 'X-Burguer Duplo', preco: 25.00, desc: 'Dois blends bovinos, queijo prato e maionese.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=X-Burguer+Duplo' },
+            { id: 5, cat: 'Salgados', nome: 'Coxinha de Frango', preco: 8.00, desc: 'Massa de batata crocante e recheio suculento.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Coxinha' },
+            { id: 6, cat: 'Refrigerantes', nome: 'Coca-Cola 350ml', preco: 6.00, desc: 'Geladíssima.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Coca-Cola' },
             { id: 6, cat: 'Sobremesas', nome: 'Pudim de Leite Moça', preco: 10.00, desc: 'Fatia individual com calda de caramelo.', img: 'https://placehold.co/400x400/ea1d2c/ffffff?text=Pudim' }
         ];
 
