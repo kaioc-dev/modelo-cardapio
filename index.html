@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pobre's Lanche | Cardápio</title>
+    <title>Lanchonete e Pizzaria | Cardápio</title>
     <link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary: #e4002b; /* Vermelho Bob's */
-            --secondary: #ffcb05; /* Amarelo Bob's */
+            --primary: #e4002b; 
+            --secondary: #ffcb05;
             --bg: #f9f9f9;
             --text: #2d2d2d;
             --shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -24,7 +24,7 @@
             padding-bottom: 100px;
         }
 
-        /* Estilo Bob's */
+        
         .brand-font {
             font-family: 'Titan One', cursive;
             text-transform: uppercase;
@@ -70,7 +70,7 @@
         .card-body h3 { font-size: 17px; margin-bottom: 4px; color: var(--primary); }
         .price { color: #2e7d32; font-weight: 800; font-size: 16px; }
 
-        /* Modais */
+    
         .modal {
             display: none; position: fixed; inset: 0;
             background: rgba(0,0,0,0.7); z-index: 2000;
@@ -201,7 +201,7 @@
     </div>
 
     <script>
-        const WHATSAPP = "5581995437788"; // Coloque seu número aqui
+        const WHATSAPP = "5581995437788";
         let cart = [];
         let currentItem = null;
         let selectedOptions = { flavor: '', extras: [] };
@@ -301,7 +301,7 @@
             document.getElementById('options-modal').style.display = 'flex';
         }
 
-        // CORREÇÃO APLICADA AQUI: Busca apenas os itens selecionáveis e ignora os títulos (<h4>)
+        
         function setFlavor(el, flavor) {
             const todosItens = el.parentElement.querySelectorAll('.check-item');
             todosItens.forEach(c => {
@@ -385,7 +385,7 @@
         
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // SISTEMA DE FINALIZAÇÃO DE COMPRA COM TAXA
+        
         function goToCheckout() {
             closeModal('cart-modal');
             document.getElementById('checkout-modal').style.display = 'flex';
